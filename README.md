@@ -30,8 +30,8 @@ The Client Insights functionality is **complete and working** with rich data vis
 - ✅ Interactive member cards with hover effects
 
 #### **Dynamic Panel Behavior**
-- ✅ Auto-shows when email with client profile is selected
-- ✅ Auto-hides when no email is selected  
+- ✅ Auto-shows **only when composing emails** (Reply/New Email mode)
+- ✅ Hidden when just reading emails (focus on content)
 - ✅ Responsive design for different screen sizes
 - ✅ Smooth animations and transitions
 
@@ -65,14 +65,15 @@ Visit: https://3000-ifmi3dsq1c2mcmachxhw2.e2b.dev
 - The **Inbox** shows 3 sample client emails
 - Each email displays client name, subject, and segment information
 
-### **Step 3: Select an Email to View Client Insights**
-1. **Click on any email** in the inbox list (Robert Sterling, Dr. Sarah Martinez, or Jennifer Chen)
-2. **Client Insights panel automatically appears** on the right side
-3. **View comprehensive client and household data**:
+### **Step 3: Use Client Insights When Composing Emails**
+1. **Select an email** in the inbox list (Robert Sterling, Dr. Sarah Martinez, or Jennifer Chen)
+2. **Click "Reply", "Reply All", or "Forward"** buttons to open compose mode
+3. **Client Insights panel automatically appears** on the right side with:
    - Client profile with occupation, risk profile, client tenure
    - Complete household breakdown with all family members
    - Individual asset allocations and relationships
    - Visual avatars and color-coded roles
+4. **Use insights to write personalized responses** based on client context
 
 ### **Step 4: Explore Different Client Segments**
 - **Robert Sterling**: Ultra High Net Worth ($72.3M household, 4 members)
@@ -80,10 +81,12 @@ Visit: https://3000-ifmi3dsq1c2mcmachxhw2.e2b.dev
 - **Jennifer Chen**: Young Professional ($185K assets, single)
 
 ### **Step 5: Additional Features**
+- **New Email**: Click "New Email" button to compose fresh emails
+- **AI Assist**: Click AI button for personalized response suggestions
 - **Dark/Light Theme**: Click theme toggle in ribbon
 - **Search**: Use search box to find specific emails or client data
-- **AI Assist**: Click AI button for personalization features
 - **Navigation**: Use arrow keys to navigate between emails
+- **Compose Mode**: Client Insights only appear when composing/replying to emails
 
 ## 🏗 **Data Architecture**
 
