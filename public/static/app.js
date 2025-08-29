@@ -351,54 +351,51 @@ function personalizeResponse() {
 function replyToEmail() {
     const currentEmail = window.currentSelectedEmail;
     if (currentEmail && currentEmail.clientProfile) {
-        showClientInsights(currentEmail);
-        showNotification('📧 Reply mode activated - Client insights displayed for personalized response', 'info');
+        showNotification('📧 Opening reply composer with client insights...', 'info');
         
-        // Open reply composer in popup window
+        // Open reply composer in popup window with Client Insights
         const popupWindow = openComposePopup('reply', currentEmail);
         
         if (!popupWindow) {
             showNotification('❌ Please allow popups for this site to open email composer', 'error');
-            hideClientInsights();
         }
     } else {
         showNotification('Opening reply composer...', 'info');
+        openComposePopup('reply', currentEmail);
     }
 }
 
 function replyAllToEmail() {
     const currentEmail = window.currentSelectedEmail;
     if (currentEmail && currentEmail.clientProfile) {
-        showClientInsights(currentEmail);
-        showNotification('📧 Reply All mode activated - Client insights displayed for personalized response', 'info');
+        showNotification('📧 Opening reply all composer with client insights...', 'info');
         
-        // Open reply all composer in popup window
+        // Open reply all composer in popup window with Client Insights
         const popupWindow = openComposePopup('replyall', currentEmail);
         
         if (!popupWindow) {
             showNotification('❌ Please allow popups for this site to open email composer', 'error');
-            hideClientInsights();
         }
     } else {
         showNotification('Opening reply all composer...', 'info');
+        openComposePopup('replyall', currentEmail);
     }
 }
 
 function forwardEmail() {
     const currentEmail = window.currentSelectedEmail;
     if (currentEmail && currentEmail.clientProfile) {
-        showClientInsights(currentEmail);
-        showNotification('📧 Forward mode activated - Client insights displayed', 'info');
+        showNotification('📧 Opening forward composer with client insights...', 'info');
         
-        // Open forward composer in popup window  
+        // Open forward composer in popup window with Client Insights
         const popupWindow = openComposePopup('forward', currentEmail);
         
         if (!popupWindow) {
             showNotification('❌ Please allow popups for this site to open email composer', 'error');
-            hideClientInsights();
         }
     } else {
         showNotification('Opening forward composer...', 'info');
+        openComposePopup('forward', currentEmail);
     }
 }
 
@@ -520,6 +517,116 @@ function hideClientInsights() {
 
 // Make hideClientInsights available globally for popup windows
 window.hideClientInsights = hideClientInsights;
+
+// Generate Client Insights HTML for popups
+function generateClientInsightsHTML(clientProfile, clientSegment, householdProfile = null) {
+    return `
+        <!-- Client Profile Card -->
+        <div class="insights-card rounded-lg p-4 mb-4">
+            <h4 class="font-semibold text-gray-900 mb-4 flex items-center text-sm">
+                <i class="fas fa-user-circle mr-2 text-blue-600"></i>
+                Client Profile
+            </h4>
+            
+            <!-- Profile Avatar and Name -->
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                    <span class="text-white text-sm font-semibold" id="client-initials">${clientProfile.fullName.split(' ').map(n => n[0]).join('').toUpperCase()}</span>
+                </div>
+                <div>
+                    <h5 class="text-sm font-semibold text-gray-900">${clientProfile.fullName}</h5>
+                    <p class="text-xs text-gray-600">${clientSegment.name}</p>
+                </div>
+            </div>
+            
+            <!-- Client Details -->
+            <div class="space-y-2 text-xs">
+                <div class="flex justify-between items-center py-1 border-b border-gray-200">
+                    <span class="font-medium text-gray-600">Age</span>
+                    <span class="font-semibold text-gray-900">${clientProfile.age} years</span>
+                </div>
+                
+                <div class="flex justify-between items-center py-1 border-b border-gray-200">
+                    <span class="font-medium text-gray-600">Occupation</span>
+                    <span class="font-semibold text-gray-900">${clientProfile.occupation}</span>
+                </div>
+                
+                <div class="flex justify-between items-center py-1 border-b border-gray-200">
+                    <span class="font-medium text-gray-600">Company</span>
+                    <span class="font-semibold text-gray-900">${clientProfile.company}</span>
+                </div>
+                
+                <div class="flex justify-between items-center py-1 border-b border-gray-200">
+                    <span class="font-medium text-gray-600">Client Since</span>
+                    <span class="font-semibold text-gray-900">${clientProfile.clientSince}</span>
+                </div>
+                
+                <div class="flex justify-between items-center py-1">
+                    <span class="font-medium text-gray-600">Risk Profile</span>
+                    <span class="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
+                        ${clientProfile.riskProfile}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        ${householdProfile ? `
+        <!-- Household Profile Card -->
+        <div class="insights-card rounded-lg p-4">
+            <h4 class="font-semibold text-gray-900 mb-4 flex items-center text-sm">
+                <i class="fas fa-home mr-2 text-green-600"></i>
+                Household Profile
+            </h4>
+            
+            <!-- Household Summary -->
+            <div class="flex justify-between items-center p-3 bg-gray-100 rounded-lg mb-3">
+                <div>
+                    <span class="text-xs font-medium text-gray-600">Members</span>
+                    <p class="text-sm font-bold text-gray-900">${householdProfile.totalMembers}</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs font-medium text-gray-600">Total Assets</span>
+                    <p class="text-sm font-bold text-green-600">${householdProfile.householdAssets}</p>
+                </div>
+            </div>
+            
+            <!-- Household Members -->
+            <div class="space-y-2">
+                ${householdProfile.members.map((member, index) => `
+                    <div class="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                    <span class="text-white text-xs font-semibold">${member.name.split(' ').map(n => n[0]).join('').toUpperCase()}</span>
+                                </div>
+                                <div>
+                                    <h6 class="text-xs font-semibold text-gray-900">${member.name}</h6>
+                                    <p class="text-xs text-gray-600">${member.relation}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs font-semibold text-gray-900">${member.assets}</p>
+                                <p class="text-xs text-gray-600">${member.role}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <span class="text-gray-500">Age:</span>
+                                <span class="font-medium text-gray-900 ml-1">${member.age}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">Job:</span>
+                                <span class="font-medium text-gray-900 ml-1">${member.occupation}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        ` : ''}
+    `;
+}
 
 function toggleClientInsights() {
     const insightsPanel = document.getElementById('client-insights-panel');
@@ -733,8 +840,8 @@ function openComposePopup(type, email = null) {
     let composeTitle = '';
     let composeSubject = '';
     let composeTo = '';
-    let width = 900;
-    let height = 700;
+    let width = 1400;  // Wider to accommodate Client Insights panel
+    let height = 800;  // Taller for better layout
     
     switch(type) {
         case 'reply':
@@ -775,7 +882,7 @@ function openComposePopup(type, email = null) {
         return null;
     }
     
-    // Generate popup content
+    // Generate popup content with Client Insights
     const popupContent = generateComposePopupHTML(composeTitle, composeSubject, composeTo, email);
     
     // Write content to popup
@@ -789,6 +896,10 @@ function openComposePopup(type, email = null) {
 }
 
 function generateComposePopupHTML(composeTitle, composeSubject, composeTo, email = null) {
+    
+    // Generate Client Insights HTML if email has client profile
+    const clientInsightsHTML = (email && email.clientProfile) ? generateClientInsightsHTML(email.clientProfile, email.clientSegment, email.householdProfile) : '';
+    
     return `
 <!DOCTYPE html>
 <html lang="en">
@@ -799,7 +910,10 @@ function generateComposePopupHTML(composeTitle, composeSubject, composeTo, email
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            font-size: 13px;
+        }
         .outlook-button {
             background: #ffffff;
             border: 1px solid #8a8886;
@@ -822,6 +936,15 @@ function generateComposePopupHTML(composeTitle, composeSubject, composeTo, email
         .outlook-button.primary:hover {
             background: #106ebe;
             border-color: #106ebe;
+        }
+        .insights-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.3s ease;
+        }
+        .insights-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
     </style>
     <script>
@@ -849,14 +972,6 @@ function generateComposePopupHTML(composeTitle, composeSubject, composeTo, email
         }
         
         function closeComposer() {
-            if (window.opener) {
-                // Hide client insights in parent window if closing compose window
-                try {
-                    window.opener.hideClientInsights();
-                } catch(e) {
-                    console.log('Could not hide client insights');
-                }
-            }
             window.close();
         }
         
@@ -867,6 +982,29 @@ function generateComposePopupHTML(composeTitle, composeSubject, composeTo, email
             } else {
                 alert('🤖 AI personalization available for client communications');
             }
+        }
+        
+        function getInitials(fullName) {
+            return fullName.split(' ').map(name => name[0]).join('').toUpperCase();
+        }
+        
+        function getRiskProfileColor(riskProfile) {
+            const colors = {
+                'Conservative': 'blue',
+                'Moderate': 'yellow', 
+                'Aggressive': 'red'
+            };
+            return colors[riskProfile] || 'gray';
+        }
+        
+        function getHouseholdMemberColor(role) {
+            const colors = {
+                'Primary Client': 'blue-600',
+                'Spouse': 'purple-600',
+                'Beneficiary': 'green-600',
+                'Dependent': 'orange-600'
+            };
+            return colors[role] || 'gray-600';
         }
     </script>
 </head>
@@ -887,74 +1025,94 @@ function generateComposePopupHTML(composeTitle, composeSubject, composeTo, email
         </div>
     </div>
 
-    <!-- Compose Header -->
-    <div class="px-4 py-3 border-b border-gray-300 bg-gray-50">
-        <div class="flex items-center justify-between mb-2">
-            <h2 class="text-lg font-semibold text-gray-900">${composeTitle}</h2>
-            <div class="flex items-center space-x-2">
-                <button onclick="aiPersonalize()" class="outlook-button text-xs" title="AI Personalization">
-                    <i class="fas fa-robot mr-1"></i> AI Assist
-                </button>
-                <button onclick="sendEmail()" class="outlook-button primary text-xs" title="Send Email">
-                    <i class="fas fa-paper-plane mr-1"></i> Send
-                </button>
-            </div>
-        </div>
-        
-        ${email && email.clientProfile ? `
-        <div class="text-xs text-gray-600 bg-blue-50 p-2 rounded">
-            <span class="font-medium">📊 Client Context:</span> ${email.clientName}
-            <span class="mx-2">•</span>
-            <span class="font-medium">Segment:</span> ${email.clientSegment.name}
-            <span class="mx-2">•</span>
-            <span class="font-medium">Recommended Tone:</span> ${email.clientSegment.emailTone}
-            <span class="mx-2">•</span>
-            <span class="font-medium">Assets:</span> ${email.householdProfile ? email.householdProfile.householdAssets : 'N/A'}
-        </div>
-        ` : ''}
-    </div>
-    
-    <!-- Compose Form -->
-    <div class="flex-1 p-4 space-y-4">
-        <!-- To Field -->
-        <div class="flex items-center space-x-3">
-            <label class="text-sm font-medium text-gray-600 w-20">To:</label>
-            <input type="email" value="${composeTo}" placeholder="Enter recipient email" 
-                   class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500" />
-        </div>
-        
-        <!-- Subject Field -->
-        <div class="flex items-center space-x-3">
-            <label class="text-sm font-medium text-gray-600 w-20">Subject:</label>
-            <input type="text" value="${composeSubject}" placeholder="Enter email subject" 
-                   class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500" />
-        </div>
-        
-        <!-- Message Body -->
-        <div class="space-y-2 flex-1 flex flex-col">
-            <label class="text-sm font-medium text-gray-600">Message:</label>
-            <textarea rows="15" placeholder="Compose your personalized message..." 
-                      class="flex-1 px-3 py-2 border border-gray-300 rounded resize-none focus:outline-none focus:border-blue-500"></textarea>
-        </div>
-        
-        <!-- Action Buttons -->
-        <div class="flex items-center justify-between pt-4 border-t border-gray-300">
-            <div class="flex items-center space-x-2">
-                <button onclick="sendEmail()" class="outlook-button primary">
-                    <i class="fas fa-paper-plane mr-2"></i>Send
-                </button>
-                <button onclick="saveDraft()" class="outlook-button">
-                    <i class="fas fa-save mr-2"></i>Save Draft
-                </button>
-                <button onclick="closeComposer()" class="outlook-button">
-                    <i class="fas fa-times mr-2"></i>Cancel
-                </button>
+    <!-- Main Content Area with Compose Form and Client Insights -->
+    <div class="flex-1 flex">
+        <!-- Compose Form Area -->
+        <div class="flex-1 flex flex-col">
+            <!-- Compose Header -->
+            <div class="px-4 py-3 border-b border-gray-300 bg-gray-50">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-lg font-semibold text-gray-900">${composeTitle}</h2>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="aiPersonalize()" class="outlook-button text-xs" title="AI Personalization">
+                            <i class="fas fa-robot mr-1"></i> AI Assist
+                        </button>
+                        <button onclick="sendEmail()" class="outlook-button primary text-xs" title="Send Email">
+                            <i class="fas fa-paper-plane mr-1"></i> Send
+                        </button>
+                    </div>
+                </div>
+                
+                ${email && email.clientProfile ? `
+                <div class="text-xs text-gray-600 bg-blue-50 p-2 rounded">
+                    <span class="font-medium">📊 Client Context:</span> ${email.clientName}
+                    <span class="mx-2">•</span>
+                    <span class="font-medium">Segment:</span> ${email.clientSegment.name}
+                    <span class="mx-2">•</span>
+                    <span class="font-medium">Tone:</span> ${email.clientSegment.emailTone}
+                </div>
+                ` : ''}
             </div>
             
-            <div class="text-xs text-gray-500">
-                ${email ? `Replying to ${email.clientName}` : 'New email composition'}
+            <!-- Compose Form -->
+            <div class="flex-1 p-4 space-y-4">
+                <!-- To Field -->
+                <div class="flex items-center space-x-3">
+                    <label class="text-sm font-medium text-gray-600 w-20">To:</label>
+                    <input type="email" value="${composeTo}" placeholder="Enter recipient email" 
+                           class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500" />
+                </div>
+                
+                <!-- Subject Field -->
+                <div class="flex items-center space-x-3">
+                    <label class="text-sm font-medium text-gray-600 w-20">Subject:</label>
+                    <input type="text" value="${composeSubject}" placeholder="Enter email subject" 
+                           class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500" />
+                </div>
+                
+                <!-- Message Body -->
+                <div class="space-y-2 flex-1 flex flex-col">
+                    <label class="text-sm font-medium text-gray-600">Message:</label>
+                    <textarea rows="15" placeholder="Compose your personalized message..." 
+                              class="flex-1 px-3 py-2 border border-gray-300 rounded resize-none focus:outline-none focus:border-blue-500"></textarea>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-between pt-4 border-t border-gray-300">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="sendEmail()" class="outlook-button primary">
+                            <i class="fas fa-paper-plane mr-2"></i>Send
+                        </button>
+                        <button onclick="saveDraft()" class="outlook-button">
+                            <i class="fas fa-save mr-2"></i>Save Draft
+                        </button>
+                        <button onclick="closeComposer()" class="outlook-button">
+                            <i class="fas fa-times mr-2"></i>Cancel
+                        </button>
+                    </div>
+                    
+                    <div class="text-xs text-gray-500">
+                        ${email ? `Replying to ${email.clientName}` : 'New email composition'}
+                    </div>
+                </div>
             </div>
         </div>
+        
+        <!-- Client Insights Panel -->
+        ${(email && email.clientProfile) ? `
+        <div class="w-80 bg-gray-50 border-l border-gray-300 flex flex-col">
+            <div class="px-4 py-3 border-b border-gray-300 bg-white">
+                <h3 class="text-sm font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-user-chart mr-2 text-blue-600"></i>
+                    Client Insights
+                </h3>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                ${clientInsightsHTML}
+            </div>
+        </div>
+        ` : ''}
     </div>
 </body>
 </html>
