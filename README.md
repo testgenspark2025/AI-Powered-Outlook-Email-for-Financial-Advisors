@@ -39,7 +39,8 @@ The Client Insights functionality is **complete and working** with rich data vis
 - ✅ **Microsoft Outlook authentic UI** with ribbon interface
 - ✅ **Email list with client communications** (3 sample emails loaded)
 - ✅ **Email preview with detailed client context**
-- ✅ **Email selection triggers Client Insights panel**
+- ✅ **Popup compose windows** for New Email/Reply/Forward (authentic Outlook behavior)
+- ✅ **Client Insights panel** appears when composing emails
 - ✅ **Search functionality** across emails and client data
 - ✅ **Theme toggle** (Light/Dark mode)
 
@@ -67,13 +68,15 @@ Visit: https://3000-ifmi3dsq1c2mcmachxhw2.e2b.dev
 
 ### **Step 3: Use Client Insights When Composing Emails**
 1. **Select an email** in the inbox list (Robert Sterling, Dr. Sarah Martinez, or Jennifer Chen)
-2. **Click "Reply", "Reply All", or "Forward"** buttons to open compose mode
-3. **Client Insights panel automatically appears** on the right side with:
+2. **Click "Reply", "Reply All", or "Forward"** buttons to:
+   - Open compose window in **separate popup window** (authentic Outlook behavior)
+   - **Client Insights panel automatically appears** on main window right side
+3. **View comprehensive client data** in main window while composing in popup:
    - Client profile with occupation, risk profile, client tenure
    - Complete household breakdown with all family members
    - Individual asset allocations and relationships
    - Visual avatars and color-coded roles
-4. **Use insights to write personalized responses** based on client context
+4. **Use insights to write personalized responses** with client context visible
 
 ### **Step 4: Explore Different Client Segments**
 - **Robert Sterling**: Ultra High Net Worth ($72.3M household, 4 members)
@@ -81,12 +84,13 @@ Visit: https://3000-ifmi3dsq1c2mcmachxhw2.e2b.dev
 - **Jennifer Chen**: Young Professional ($185K assets, single)
 
 ### **Step 5: Additional Features**
-- **New Email**: Click "New Email" button to compose fresh emails
-- **AI Assist**: Click AI button for personalized response suggestions
+- **New Email**: Click "New Email" button to open composer in **separate popup window**
+- **Popup Compose**: All compose functions (Reply/Reply All/Forward/New) open in popup windows
+- **AI Assist**: Click AI button in popup for personalized response suggestions
 - **Dark/Light Theme**: Click theme toggle in ribbon
 - **Search**: Use search box to find specific emails or client data
 - **Navigation**: Use arrow keys to navigate between emails
-- **Compose Mode**: Client Insights only appear when composing/replying to emails
+- **Dual Window**: Client Insights visible in main window while composing in popup
 
 ## 🏗 **Data Architecture**
 
