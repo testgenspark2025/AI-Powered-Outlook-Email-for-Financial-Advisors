@@ -215,12 +215,11 @@ async function renderClientEmailPreview(email) {
     
     previewPane.className = 'flex-1 bg-white dark:bg-gray-800 flex flex-col border-l border-gray-300 dark:border-gray-600 reading-pane';
     
-    // Show Client Insights panel if email has client profile
-    if (email.clientProfile) {
-        showClientInsights(email);
-    } else {
-        hideClientInsights();
-    }
+    // Store current email for use in reply/compose functions
+    window.currentSelectedEmail = email;
+    
+    // Hide Client Insights panel when just reading emails
+    hideClientInsights();
     
     previewPane.innerHTML = `
         <!-- Outlook-style Email Header -->
@@ -235,10 +234,10 @@ async function renderClientEmailPreview(email) {
                     <button class="outlook-button text-xs" onclick="replyToEmail()" title="Reply">
                         <i class="fas fa-reply"></i>
                     </button>
-                    <button class="outlook-button text-xs" title="Reply All">
+                    <button class="outlook-button text-xs" onclick="replyAllToEmail()" title="Reply All">
                         <i class="fas fa-reply-all"></i>
                     </button>
-                    <button class="outlook-button text-xs" title="Forward">
+                    <button class="outlook-button text-xs" onclick="forwardEmail()" title="Forward">
                         <i class="fas fa-share"></i>
                     </button>
                     <button class="outlook-button text-xs" title="Delete">
@@ -334,13 +333,58 @@ function updateFADashboard() {
 
 // Financial Advisor Specific Functions
 function personalizeResponse() {
-    showNotification('AI analyzing client segment and market context for personalized response...', 'info');
-    // In real implementation, this would call AI API for personalization
+    const currentEmail = window.currentSelectedEmail;
+    if (currentEmail && currentEmail.clientProfile) {
+        showNotification(`🤖 AI analyzing ${currentEmail.clientSegment.name} client profile for personalized response...`, 'info');
+        
+        // Show suggested response based on client segment
+        setTimeout(() => {
+            if (currentEmail.suggestedResponse) {
+                showNotification(`💡 AI Suggestion: ${currentEmail.suggestedResponse.substring(0, 100)}...`, 'success');
+            }
+        }, 2000);
+    } else {
+        showNotification('🤖 AI personalization available when composing to specific clients', 'info');
+    }
 }
 
 function replyToEmail() {
-    showNotification('Opening personalized reply composer...', 'info');
-    // In real implementation, this would open Outlook-style compose window
+    const currentEmail = window.currentSelectedEmail;
+    if (currentEmail && currentEmail.clientProfile) {
+        showClientInsights(currentEmail);
+        showNotification('📧 Reply mode activated - Client insights displayed for personalized response', 'info');
+        
+        // Show compose UI overlay or modal here in real implementation
+        showComposeWindow('reply', currentEmail);
+    } else {
+        showNotification('Opening reply composer...', 'info');
+    }
+}
+
+function replyAllToEmail() {
+    const currentEmail = window.currentSelectedEmail;
+    if (currentEmail && currentEmail.clientProfile) {
+        showClientInsights(currentEmail);
+        showNotification('📧 Reply All mode activated - Client insights displayed for personalized response', 'info');
+        
+        // Show compose UI overlay or modal here in real implementation  
+        showComposeWindow('replyall', currentEmail);
+    } else {
+        showNotification('Opening reply all composer...', 'info');
+    }
+}
+
+function forwardEmail() {
+    const currentEmail = window.currentSelectedEmail;
+    if (currentEmail && currentEmail.clientProfile) {
+        showClientInsights(currentEmail);
+        showNotification('📧 Forward mode activated - Client insights displayed', 'info');
+        
+        // Show compose UI overlay or modal here in real implementation
+        showComposeWindow('forward', currentEmail);
+    } else {
+        showNotification('Opening forward composer...', 'info');
+    }
 }
 
 function filterBySegment(segment) {
@@ -377,6 +421,7 @@ function handleSearch(e) {
 
 function goBack() {
     selectedEmailId = null;
+    window.currentSelectedEmail = null;
     document.querySelectorAll('.client-email-item').forEach(item => {
         item.classList.remove('selected');
     });
@@ -649,8 +694,121 @@ function showNotification(message, type = 'info') {
 
 function showWelcomeMessage() {
     setTimeout(() => {
-        showNotification('🎯 Financial Advisor Platform Ready! Client Profile & Household Insights Available.', 'success');
+        showNotification('🎯 Financial Advisor Platform Ready! Client Insights available when composing emails.', 'success');
     }, 1000);
+}
+
+// New Email and Compose Functions
+function newEmail() {
+    // Clear any selected email
+    selectedEmailId = null;
+    window.currentSelectedEmail = null;
+    
+    // Hide Client Insights for new email (no client context yet)
+    hideClientInsights();
+    
+    showNotification('📧 New email composer opened - Select a client to view insights', 'info');
+    
+    // Show compose window for new email
+    showComposeWindow('new', null);
+}
+
+function showComposeWindow(type, email = null) {
+    const previewPane = document.getElementById('email-preview');
+    
+    let composeTitle = '';
+    let composeSubject = '';
+    let composeTo = '';
+    
+    switch(type) {
+        case 'reply':
+            composeTitle = `Reply to: ${email.subject}`;
+            composeSubject = `Re: ${email.subject}`;
+            composeTo = email.from;
+            break;
+        case 'replyall':
+            composeTitle = `Reply All to: ${email.subject}`;
+            composeSubject = `Re: ${email.subject}`;
+            composeTo = email.from;
+            break;
+        case 'forward':
+            composeTitle = `Forward: ${email.subject}`;
+            composeSubject = `Fwd: ${email.subject}`;
+            composeTo = '';
+            break;
+        case 'new':
+        default:
+            composeTitle = 'New Email';
+            composeSubject = '';
+            composeTo = '';
+            break;
+    }
+    
+    previewPane.innerHTML = `
+        <!-- Compose Window -->
+        <div class="flex-1 bg-white dark:bg-gray-800 flex flex-col">
+            <!-- Compose Header -->
+            <div class="px-4 py-3 border-b border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">${composeTitle}</h2>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="personalizeResponse()" class="outlook-button text-xs" title="AI Personalization">
+                            <i class="fas fa-robot"></i> AI Assist
+                        </button>
+                        <button onclick="goBack()" class="outlook-button text-xs" title="Cancel">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Compose Form -->
+            <div class="p-4 space-y-4 bg-white dark:bg-gray-800">
+                <!-- To Field -->
+                <div class="flex items-center space-x-3">
+                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400 w-16">To:</label>
+                    <input type="email" value="${composeTo}" placeholder="Enter recipient email" 
+                           class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                </div>
+                
+                <!-- Subject Field -->
+                <div class="flex items-center space-x-3">
+                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400 w-16">Subject:</label>
+                    <input type="text" value="${composeSubject}" placeholder="Enter email subject" 
+                           class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                </div>
+                
+                <!-- Message Body -->
+                <div class="space-y-2">
+                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Message:</label>
+                    <textarea rows="12" placeholder="Compose your personalized message..." 
+                              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"></textarea>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-between pt-4 border-t border-gray-300 dark:border-gray-600">
+                    <div class="flex items-center space-x-2">
+                        <button class="outlook-button primary">
+                            <i class="fas fa-paper-plane mr-2"></i>Send
+                        </button>
+                        <button onclick="goBack()" class="outlook-button">
+                            <i class="fas fa-save mr-2"></i>Save Draft
+                        </button>
+                    </div>
+                    
+                    ${email && email.clientProfile ? `
+                    <div class="text-xs text-gray-600 dark:text-gray-400">
+                        <span class="font-medium">Client:</span> ${email.clientName}
+                        <span class="mx-2">•</span>
+                        <span class="font-medium">Segment:</span> ${email.clientSegment.name}
+                        <span class="mx-2">•</span>
+                        <span class="font-medium">Tone:</span> ${email.clientSegment.emailTone}
+                    </div>
+                    ` : '<div class="text-xs text-gray-500 dark:text-gray-400">Select a client to view personalized insights</div>'}
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 function updateUI() {

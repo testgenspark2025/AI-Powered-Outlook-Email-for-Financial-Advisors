@@ -485,7 +485,7 @@ app.get('/', (c) => {
             <div class="flex items-center space-x-4">
               {/* New Email Group */}
               <div class="flex flex-col items-center mr-6">
-                <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded shadow-sm flex items-center space-x-2 mb-1">
+                <button onclick="newEmail()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded shadow-sm flex items-center space-x-2 mb-1">
                   <i class="fas fa-plus text-sm"></i>
                   <span class="text-sm font-medium">New Email</span>
                 </button>
