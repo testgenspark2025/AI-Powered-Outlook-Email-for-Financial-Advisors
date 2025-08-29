@@ -30,7 +30,8 @@ The Client Insights functionality is **complete and working** with rich data vis
 - ✅ Interactive member cards with hover effects
 
 #### **Dynamic Panel Behavior**
-- ✅ Auto-shows **only when composing emails** (Reply/New Email mode)
+- ✅ **Appears inside popup compose windows** for client emails
+- ✅ **Integrated side panel** in compose window layout
 - ✅ Hidden when just reading emails (focus on content)
 - ✅ Responsive design for different screen sizes
 - ✅ Smooth animations and transitions
@@ -70,13 +71,13 @@ Visit: https://3000-ifmi3dsq1c2mcmachxhw2.e2b.dev
 1. **Select an email** in the inbox list (Robert Sterling, Dr. Sarah Martinez, or Jennifer Chen)
 2. **Click "Reply", "Reply All", or "Forward"** buttons to:
    - Open compose window in **separate popup window** (authentic Outlook behavior)
-   - **Client Insights panel automatically appears** on main window right side
-3. **View comprehensive client data** in main window while composing in popup:
+   - **Client Insights panel appears inside the popup window** on the right side
+3. **View comprehensive client data** inside the compose popup:
    - Client profile with occupation, risk profile, client tenure
    - Complete household breakdown with all family members
    - Individual asset allocations and relationships
    - Visual avatars and color-coded roles
-4. **Use insights to write personalized responses** with client context visible
+4. **Compose personalized responses** with client context directly in the same window
 
 ### **Step 4: Explore Different Client Segments**
 - **Robert Sterling**: Ultra High Net Worth ($72.3M household, 4 members)
@@ -86,11 +87,11 @@ Visit: https://3000-ifmi3dsq1c2mcmachxhw2.e2b.dev
 ### **Step 5: Additional Features**
 - **New Email**: Click "New Email" button to open composer in **separate popup window**
 - **Popup Compose**: All compose functions (Reply/Reply All/Forward/New) open in popup windows
+- **Integrated Insights**: Client Insights appear **inside compose popup** on the right side
 - **AI Assist**: Click AI button in popup for personalized response suggestions
 - **Dark/Light Theme**: Click theme toggle in ribbon
 - **Search**: Use search box to find specific emails or client data
 - **Navigation**: Use arrow keys to navigate between emails
-- **Dual Window**: Client Insights visible in main window while composing in popup
 
 ## 🏗 **Data Architecture**
 
