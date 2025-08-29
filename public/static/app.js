@@ -354,8 +354,13 @@ function replyToEmail() {
         showClientInsights(currentEmail);
         showNotification('📧 Reply mode activated - Client insights displayed for personalized response', 'info');
         
-        // Show compose UI overlay or modal here in real implementation
-        showComposeWindow('reply', currentEmail);
+        // Open reply composer in popup window
+        const popupWindow = openComposePopup('reply', currentEmail);
+        
+        if (!popupWindow) {
+            showNotification('❌ Please allow popups for this site to open email composer', 'error');
+            hideClientInsights();
+        }
     } else {
         showNotification('Opening reply composer...', 'info');
     }
@@ -367,8 +372,13 @@ function replyAllToEmail() {
         showClientInsights(currentEmail);
         showNotification('📧 Reply All mode activated - Client insights displayed for personalized response', 'info');
         
-        // Show compose UI overlay or modal here in real implementation  
-        showComposeWindow('replyall', currentEmail);
+        // Open reply all composer in popup window
+        const popupWindow = openComposePopup('replyall', currentEmail);
+        
+        if (!popupWindow) {
+            showNotification('❌ Please allow popups for this site to open email composer', 'error');
+            hideClientInsights();
+        }
     } else {
         showNotification('Opening reply all composer...', 'info');
     }
@@ -380,8 +390,13 @@ function forwardEmail() {
         showClientInsights(currentEmail);
         showNotification('📧 Forward mode activated - Client insights displayed', 'info');
         
-        // Show compose UI overlay or modal here in real implementation
-        showComposeWindow('forward', currentEmail);
+        // Open forward composer in popup window  
+        const popupWindow = openComposePopup('forward', currentEmail);
+        
+        if (!popupWindow) {
+            showNotification('❌ Please allow popups for this site to open email composer', 'error');
+            hideClientInsights();
+        }
     } else {
         showNotification('Opening forward composer...', 'info');
     }
@@ -502,6 +517,9 @@ function hideClientInsights() {
         insightsPanel.classList.add('hidden');
     }
 }
+
+// Make hideClientInsights available globally for popup windows
+window.hideClientInsights = hideClientInsights;
 
 function toggleClientInsights() {
     const insightsPanel = document.getElementById('client-insights-panel');
@@ -700,25 +718,23 @@ function showWelcomeMessage() {
 
 // New Email and Compose Functions
 function newEmail() {
-    // Clear any selected email
-    selectedEmailId = null;
-    window.currentSelectedEmail = null;
+    showNotification('📧 Opening new email composer window...', 'info');
     
-    // Hide Client Insights for new email (no client context yet)
-    hideClientInsights();
+    // Open new email composer in popup window
+    const popupWindow = openComposePopup('new', null);
     
-    showNotification('📧 New email composer opened - Select a client to view insights', 'info');
-    
-    // Show compose window for new email
-    showComposeWindow('new', null);
+    if (!popupWindow) {
+        showNotification('❌ Please allow popups for this site to open email composer', 'error');
+    }
 }
 
-function showComposeWindow(type, email = null) {
-    const previewPane = document.getElementById('email-preview');
-    
+// Popup Window Functions
+function openComposePopup(type, email = null) {
     let composeTitle = '';
     let composeSubject = '';
     let composeTo = '';
+    let width = 900;
+    let height = 700;
     
     switch(type) {
         case 'reply':
@@ -744,70 +760,204 @@ function showComposeWindow(type, email = null) {
             break;
     }
     
-    previewPane.innerHTML = `
-        <!-- Compose Window -->
-        <div class="flex-1 bg-white dark:bg-gray-800 flex flex-col">
-            <!-- Compose Header -->
-            <div class="px-4 py-3 border-b border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
-                <div class="flex items-center justify-between mb-2">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">${composeTitle}</h2>
-                    <div class="flex items-center space-x-1">
-                        <button onclick="personalizeResponse()" class="outlook-button text-xs" title="AI Personalization">
-                            <i class="fas fa-robot"></i> AI Assist
-                        </button>
-                        <button onclick="goBack()" class="outlook-button text-xs" title="Cancel">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Compose Form -->
-            <div class="p-4 space-y-4 bg-white dark:bg-gray-800">
-                <!-- To Field -->
-                <div class="flex items-center space-x-3">
-                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400 w-16">To:</label>
-                    <input type="email" value="${composeTo}" placeholder="Enter recipient email" 
-                           class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
-                </div>
-                
-                <!-- Subject Field -->
-                <div class="flex items-center space-x-3">
-                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400 w-16">Subject:</label>
-                    <input type="text" value="${composeSubject}" placeholder="Enter email subject" 
-                           class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
-                </div>
-                
-                <!-- Message Body -->
-                <div class="space-y-2">
-                    <label class="text-sm font-medium text-gray-600 dark:text-gray-400">Message:</label>
-                    <textarea rows="12" placeholder="Compose your personalized message..." 
-                              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-none"></textarea>
-                </div>
-                
-                <!-- Action Buttons -->
-                <div class="flex items-center justify-between pt-4 border-t border-gray-300 dark:border-gray-600">
-                    <div class="flex items-center space-x-2">
-                        <button class="outlook-button primary">
-                            <i class="fas fa-paper-plane mr-2"></i>Send
-                        </button>
-                        <button onclick="goBack()" class="outlook-button">
-                            <i class="fas fa-save mr-2"></i>Save Draft
-                        </button>
-                    </div>
-                    
-                    ${email && email.clientProfile ? `
-                    <div class="text-xs text-gray-600 dark:text-gray-400">
-                        <span class="font-medium">Client:</span> ${email.clientName}
-                        <span class="mx-2">•</span>
-                        <span class="font-medium">Segment:</span> ${email.clientSegment.name}
-                        <span class="mx-2">•</span>
-                        <span class="font-medium">Tone:</span> ${email.clientSegment.emailTone}
-                    </div>
-                    ` : '<div class="text-xs text-gray-500 dark:text-gray-400">Select a client to view personalized insights</div>'}
-                </div>
+    // Calculate center position
+    const left = (screen.width - width) / 2;
+    const top = (screen.height - height) / 2;
+    
+    // Open popup window
+    const popupWindow = window.open(
+        '', 
+        `compose_${Date.now()}`, 
+        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,menubar=no,toolbar=no,location=no,status=no`
+    );
+    
+    if (!popupWindow) {
+        return null;
+    }
+    
+    // Generate popup content
+    const popupContent = generateComposePopupHTML(composeTitle, composeSubject, composeTo, email);
+    
+    // Write content to popup
+    popupWindow.document.write(popupContent);
+    popupWindow.document.close();
+    
+    // Focus the popup window
+    popupWindow.focus();
+    
+    return popupWindow;
+}
+
+function generateComposePopupHTML(composeTitle, composeSubject, composeTo, email = null) {
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${composeTitle} - Financial Advisor Outlook</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" />
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .outlook-button {
+            background: #ffffff;
+            border: 1px solid #8a8886;
+            color: #323130;
+            padding: 6px 12px;
+            border-radius: 2px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+        }
+        .outlook-button:hover {
+            background: #f3f2f1;
+            border-color: #323130;
+        }
+        .outlook-button.primary {
+            background: #0078d4;
+            border-color: #0078d4;
+            color: #ffffff;
+        }
+        .outlook-button.primary:hover {
+            background: #106ebe;
+            border-color: #106ebe;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        fa: {
+                            blue: '#1E40AF',
+                            green: '#059669',
+                            gold: '#D97706'
+                        }
+                    }
+                }
+            }
+        }
+        
+        function sendEmail() {
+            alert('✅ Email sent successfully! (Demo mode)');
+            window.close();
+        }
+        
+        function saveDraft() {
+            alert('💾 Draft saved successfully! (Demo mode)');
+        }
+        
+        function closeComposer() {
+            if (window.opener) {
+                // Hide client insights in parent window if closing compose window
+                try {
+                    window.opener.hideClientInsights();
+                } catch(e) {
+                    console.log('Could not hide client insights');
+                }
+            }
+            window.close();
+        }
+        
+        function aiPersonalize() {
+            const clientInfo = ${email ? JSON.stringify(email) : 'null'};
+            if (clientInfo && clientInfo.clientProfile) {
+                alert('🤖 AI Suggestion: "' + clientInfo.suggestedResponse.substring(0, 100) + '..."');
+            } else {
+                alert('🤖 AI personalization available for client communications');
+            }
+        }
+    </script>
+</head>
+<body class="bg-white min-h-screen flex flex-col">
+    <!-- Outlook Title Bar -->
+    <div class="bg-blue-600 text-white px-3 py-1 text-xs flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-envelope mr-2"></i>
+            <span>${composeTitle}</span>
+        </div>
+        <div class="flex items-center space-x-1">
+            <button onclick="window.minimize && window.minimize()" class="w-8 h-6 flex items-center justify-center hover:bg-blue-700" title="Minimize">
+                <i class="fas fa-minus text-xs"></i>
+            </button>
+            <button onclick="closeComposer()" class="w-8 h-6 flex items-center justify-center hover:bg-red-600" title="Close">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Compose Header -->
+    <div class="px-4 py-3 border-b border-gray-300 bg-gray-50">
+        <div class="flex items-center justify-between mb-2">
+            <h2 class="text-lg font-semibold text-gray-900">${composeTitle}</h2>
+            <div class="flex items-center space-x-2">
+                <button onclick="aiPersonalize()" class="outlook-button text-xs" title="AI Personalization">
+                    <i class="fas fa-robot mr-1"></i> AI Assist
+                </button>
+                <button onclick="sendEmail()" class="outlook-button primary text-xs" title="Send Email">
+                    <i class="fas fa-paper-plane mr-1"></i> Send
+                </button>
             </div>
         </div>
+        
+        ${email && email.clientProfile ? `
+        <div class="text-xs text-gray-600 bg-blue-50 p-2 rounded">
+            <span class="font-medium">📊 Client Context:</span> ${email.clientName}
+            <span class="mx-2">•</span>
+            <span class="font-medium">Segment:</span> ${email.clientSegment.name}
+            <span class="mx-2">•</span>
+            <span class="font-medium">Recommended Tone:</span> ${email.clientSegment.emailTone}
+            <span class="mx-2">•</span>
+            <span class="font-medium">Assets:</span> ${email.householdProfile ? email.householdProfile.householdAssets : 'N/A'}
+        </div>
+        ` : ''}
+    </div>
+    
+    <!-- Compose Form -->
+    <div class="flex-1 p-4 space-y-4">
+        <!-- To Field -->
+        <div class="flex items-center space-x-3">
+            <label class="text-sm font-medium text-gray-600 w-20">To:</label>
+            <input type="email" value="${composeTo}" placeholder="Enter recipient email" 
+                   class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500" />
+        </div>
+        
+        <!-- Subject Field -->
+        <div class="flex items-center space-x-3">
+            <label class="text-sm font-medium text-gray-600 w-20">Subject:</label>
+            <input type="text" value="${composeSubject}" placeholder="Enter email subject" 
+                   class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500" />
+        </div>
+        
+        <!-- Message Body -->
+        <div class="space-y-2 flex-1 flex flex-col">
+            <label class="text-sm font-medium text-gray-600">Message:</label>
+            <textarea rows="15" placeholder="Compose your personalized message..." 
+                      class="flex-1 px-3 py-2 border border-gray-300 rounded resize-none focus:outline-none focus:border-blue-500"></textarea>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-between pt-4 border-t border-gray-300">
+            <div class="flex items-center space-x-2">
+                <button onclick="sendEmail()" class="outlook-button primary">
+                    <i class="fas fa-paper-plane mr-2"></i>Send
+                </button>
+                <button onclick="saveDraft()" class="outlook-button">
+                    <i class="fas fa-save mr-2"></i>Save Draft
+                </button>
+                <button onclick="closeComposer()" class="outlook-button">
+                    <i class="fas fa-times mr-2"></i>Cancel
+                </button>
+            </div>
+            
+            <div class="text-xs text-gray-500">
+                ${email ? `Replying to ${email.clientName}` : 'New email composition'}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
     `;
 }
 
