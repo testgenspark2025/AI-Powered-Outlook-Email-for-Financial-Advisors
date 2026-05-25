@@ -1,0 +1,743 @@
+openapi: 3.1.0
+info:
+  title: Financial Advisor Outlook API
+  version: 0.1.0
+  description: |
+    REST API for the FAO prototype. All endpoints are under `/api/v1`.
+    Authentication is via the `fa_session` HttpOnly cookie set by
+    `POST /api/v1/auth/login`. Streaming endpoints return
+    `text/event-stream`.
+servers:
+  - url: https://fao-mvp.pages.dev/api/v1
+    description: Production
+  - url: http://localhost:3000/api/v1
+    description: Local
+security:
+  - cookieAuth: []
+
+tags:
+  - name: auth
+  - name: health
+  - name: clients
+  - name: emails
+  - name: summaries
+  - name: drafts
+  - name: sent
+  - name: follow-ups
+  - name: ai
+  - name: settings
+  - name: search
+
+paths:
+
+  /health:
+    get:
+      tags: [health]
+      security: []
+      summary: Liveness probe
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+
+  /auth/login:
+    post:
+      tags: [auth]
+      security: []
+      summary: Exchange the shared password for a session cookie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: { type: string, minLength: 1 }
+      responses:
+        "204":
+          description: Logged in; `fa_session` cookie set
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: Clear the session cookie
+      responses:
+        "204":
+          description: Logged out
+
+  /clients:
+    get:
+      tags: [clients]
+      summary: List clients (paginated)
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - in: query
+          name: segmentId
+          schema: { type: integer }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientPage"
+
+  /clients/{id}:
+    get:
+      tags: [clients]
+      summary: Get a single client with household and members
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /emails:
+    get:
+      tags: [emails]
+      summary: List emails by folder
+      parameters:
+        - in: query
+          name: folder
+          required: true
+          schema: { type: string, enum: [inbox, junk, archive, deleted] }
+        - in: query
+          name: segmentId
+          schema: { type: integer }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailPage"
+
+  /emails/{id}:
+    get:
+      tags: [emails]
+      summary: Get a single email with its summary if present
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [emails]
+      summary: Mark read/unread, flag importance, move folder
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isRead: { type: boolean }
+                isImportant: { type: boolean }
+                folder:
+                  type: string
+                  enum: [inbox, junk, archive, deleted]
+      responses:
+        "204":
+          description: Updated
+
+  /drafts:
+    get:
+      tags: [drafts]
+      summary: List open drafts
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DraftPage"
+    post:
+      tags: [drafts]
+      summary: Create a new draft (reply/forward/new)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DraftCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Draft"
+
+  /drafts/{id}:
+    get:
+      tags: [drafts]
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      summary: Get a draft
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Draft"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [drafts]
+      summary: Replace draft contents (autosave)
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DraftUpsert"
+      responses:
+        "204":
+          description: Saved
+    delete:
+      tags: [drafts]
+      summary: Discard draft
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      responses:
+        "204":
+          description: Discarded
+
+  /sent:
+    get:
+      tags: [sent]
+      summary: List sent items
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SentPage"
+    post:
+      tags: [sent]
+      summary: Mock-send a draft (moves to sent items)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [draftId]
+              properties:
+                draftId: { type: string }
+      responses:
+        "201":
+          description: Sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SentItem"
+
+  /follow-ups:
+    get:
+      tags: [follow-ups]
+      summary: List follow-ups grouped by client
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [open, done, snoozed] }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowUpPage"
+    post:
+      tags: [follow-ups]
+      summary: Create a follow-up (typically from an AI suggestion)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FollowUpCreate"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowUp"
+
+  /follow-ups/{id}:
+    patch:
+      tags: [follow-ups]
+      parameters: [{ $ref: "#/components/parameters/Id" }]
+      summary: Update follow-up (mark done/snooze)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [open, done, snoozed] }
+                dueAt: { type: string, format: date-time, nullable: true }
+      responses:
+        "204":
+          description: Updated
+
+  /settings:
+    get:
+      tags: [settings]
+      summary: Get the single settings row
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+    put:
+      tags: [settings]
+      summary: Update settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsUpsert"
+      responses:
+        "204":
+          description: Saved
+
+  /search:
+    get:
+      tags: [search]
+      summary: Cross-resource search
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema: { type: string, minLength: 1 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResults"
+
+  /ai/draft-reply:
+    post:
+      tags: [ai]
+      summary: Stream an AI-drafted reply (SSE)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiDraftReplyRequest"
+      responses:
+        "200":
+          description: SSE stream of tokens; final event carries metadata
+          content:
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/AiSseSchema"
+
+  /ai/draft-new:
+    post:
+      tags: [ai]
+      summary: Stream an AI-drafted new outbound email (SSE)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiDraftNewRequest"
+      responses:
+        "200":
+          description: SSE stream of tokens
+          content:
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/AiSseSchema"
+
+  /ai/summarize:
+    post:
+      tags: [ai]
+      summary: Summarize a long email (cached)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [emailId]
+              properties:
+                emailId: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Summary"
+
+  /ai/follow-ups:
+    post:
+      tags: [ai]
+      summary: Generate up to 3 follow-up suggestions for a draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [draftId]
+              properties:
+                draftId: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FollowUpSuggestion"
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: fa_session
+
+  parameters:
+    Id:
+      in: path
+      name: id
+      required: true
+      schema: { type: string }
+    Cursor:
+      in: query
+      name: cursor
+      schema: { type: string }
+    Limit:
+      in: query
+      name: limit
+      schema: { type: integer, default: 50, maximum: 200 }
+
+  responses:
+    Unauthorized:
+      description: Not authenticated
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Problem" }
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Problem" }
+
+  schemas:
+    Problem:
+      type: object
+      description: RFC 7807 Problem Details
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+      required: [title, status]
+
+    Health:
+      type: object
+      properties:
+        status: { type: string, enum: [ok] }
+        version: { type: string }
+
+    Segment:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        range: { type: string }
+        color: { type: string }
+        emailTone: { type: string }
+      required: [id, name, range, emailTone]
+
+    HouseholdMember:
+      type: object
+      properties:
+        id: { type: string }
+        fullName: { type: string }
+        age: { type: integer, nullable: true }
+        role: { type: string }
+        relation: { type: string }
+        occupation: { type: string, nullable: true }
+        assetsLabel: { type: string, nullable: true }
+      required: [id, fullName, role]
+
+    Household:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string, nullable: true }
+        totalMembers: { type: integer }
+        householdAssetsLabel: { type: string, nullable: true }
+        members:
+          type: array
+          items: { $ref: "#/components/schemas/HouseholdMember" }
+
+    Client:
+      type: object
+      properties:
+        id: { type: string }
+        fullName: { type: string }
+        email: { type: string, format: email }
+        occupation: { type: string, nullable: true }
+        company: { type: string, nullable: true }
+        clientSince: { type: string, nullable: true }
+        riskProfile: { type: string, nullable: true }
+        segment: { $ref: "#/components/schemas/Segment" }
+
+    ClientDetail:
+      allOf:
+        - $ref: "#/components/schemas/Client"
+        - type: object
+          properties:
+            household: { $ref: "#/components/schemas/Household" }
+
+    ClientPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Client" }
+        nextCursor: { type: string, nullable: true }
+
+    Email:
+      type: object
+      properties:
+        id: { type: string }
+        threadId: { type: string, nullable: true }
+        folder: { type: string }
+        subject: { type: string }
+        fromEmail: { type: string }
+        preview: { type: string }
+        receivedAt: { type: string, format: date-time }
+        isRead: { type: boolean }
+        isImportant: { type: boolean }
+        priority: { type: string, nullable: true }
+        client: { $ref: "#/components/schemas/Client" }
+
+    EmailDetail:
+      allOf:
+        - $ref: "#/components/schemas/Email"
+        - type: object
+          properties:
+            body: { type: string }
+            sentiment: { type: string, nullable: true }
+            marketContext: { type: string, nullable: true }
+            summary: { $ref: "#/components/schemas/Summary", nullable: true }
+
+    EmailPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Email" }
+        nextCursor: { type: string, nullable: true }
+
+    Summary:
+      type: object
+      properties:
+        id: { type: string }
+        emailId: { type: string }
+        summary: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    DraftCreate:
+      type: object
+      required: [kind]
+      properties:
+        kind: { type: string, enum: [reply, reply_all, forward, new] }
+        replyToEmailId: { type: string, nullable: true }
+        clientId: { type: string, nullable: true }
+        subject: { type: string, nullable: true }
+        body: { type: string, nullable: true }
+        depth: { type: string, enum: [light, medium, deep] }
+
+    DraftUpsert:
+      type: object
+      properties:
+        subject: { type: string }
+        body: { type: string }
+        depth: { type: string, enum: [light, medium, deep] }
+
+    Draft:
+      type: object
+      properties:
+        id: { type: string }
+        kind: { type: string }
+        replyToEmailId: { type: string, nullable: true }
+        clientId: { type: string, nullable: true }
+        subject: { type: string }
+        body: { type: string }
+        depth: { type: string }
+        status: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    DraftPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Draft" }
+        nextCursor: { type: string, nullable: true }
+
+    SentItem:
+      type: object
+      properties:
+        id: { type: string }
+        clientId: { type: string }
+        replyToEmailId: { type: string, nullable: true }
+        subject: { type: string }
+        body: { type: string }
+        sentAt: { type: string, format: date-time }
+
+    SentPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/SentItem" }
+        nextCursor: { type: string, nullable: true }
+
+    FollowUpCreate:
+      type: object
+      required: [clientId, actionType, title]
+      properties:
+        clientId: { type: string }
+        sourceDraftId: { type: string, nullable: true }
+        actionType: { type: string, enum: [schedule_meeting, send_brief, reminder] }
+        title: { type: string }
+        dueAt: { type: string, format: date-time, nullable: true }
+
+    FollowUp:
+      type: object
+      properties:
+        id: { type: string }
+        clientId: { type: string }
+        actionType: { type: string }
+        title: { type: string }
+        dueAt: { type: string, format: date-time, nullable: true }
+        status: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    FollowUpPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/FollowUp" }
+        nextCursor: { type: string, nullable: true }
+
+    FollowUpSuggestion:
+      type: object
+      properties:
+        actionType: { type: string, enum: [schedule_meeting, send_brief, reminder] }
+        title: { type: string }
+        rationale: { type: string }
+
+    Settings:
+      type: object
+      properties:
+        displayName: { type: string, nullable: true }
+        signature: { type: string, nullable: true }
+        defaultDepth: { type: string, enum: [light, medium, deep] }
+        theme: { type: string, enum: [system, light, dark] }
+
+    SettingsUpsert:
+      allOf:
+        - $ref: "#/components/schemas/Settings"
+
+    SearchResults:
+      type: object
+      properties:
+        emails:
+          type: array
+          items: { $ref: "#/components/schemas/Email" }
+        clients:
+          type: array
+          items: { $ref: "#/components/schemas/Client" }
+        followUps:
+          type: array
+          items: { $ref: "#/components/schemas/FollowUp" }
+
+    AiDraftReplyRequest:
+      type: object
+      required: [emailId, depth]
+      properties:
+        emailId: { type: string }
+        draftId: { type: string, nullable: true, description: "If continuing into an existing draft" }
+        depth: { type: string, enum: [light, medium, deep] }
+
+    AiDraftNewRequest:
+      type: object
+      required: [clientId, depth]
+      properties:
+        clientId: { type: string }
+        draftId: { type: string, nullable: true }
+        depth: { type: string, enum: [light, medium, deep] }
+        intentHint: { type: string, nullable: true }
+
+    AiSseSchema:
+      type: object
+      description: |
+        SSE event stream. Each `data:` line is a JSON object with one
+        of: `{ type: "token", value: string }`, `{ type: "done", meta: {...} }`,
+        or `{ type: "error", message: string }`.

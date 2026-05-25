@@ -1,6 +1,6 @@
 # ADR-003: Next.js Route Handlers + Server Actions for the Backend
 
-- **Status:** Accepted
+- **Status:** Superseded in part by [ADR-011](./adr-011-rest-api-style.md) (Server Actions are no longer the recommended mutation path)
 - **Date:** 2026-05-24
 - **Deciders:** Engineering lead
 - **Phase:** 2 — Analysis & Planning

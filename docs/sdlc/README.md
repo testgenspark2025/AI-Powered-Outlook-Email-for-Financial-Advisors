@@ -12,7 +12,7 @@ edits.
 | 0 | Scope & Project Charter | Approved | [phase-0-scope.md](./phase-0-scope.md) |
 | 1 | Requirements & Discovery | Approved | [phase-1-requirements/](./phase-1-requirements/) |
 | 2 | Analysis & Planning | Approved | [phase-2-planning/](./phase-2-planning/) |
-| 3 | Design | Not started | _pending_ |
+| 3 | Design | Approved | [phase-3-design/](./phase-3-design/) |
 | 4 | Implementation | Not started | _pending_ |
 | 5 | Testing & QA | Not started | _pending_ |
 | 6 | Deployment & Release | Not started | _pending_ |

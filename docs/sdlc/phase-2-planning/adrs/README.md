@@ -10,7 +10,7 @@ supersedes the previous one.
 |---|---|---|---|
 | [ADR-001](./adr-001-build-approach.md) | Greenfield rewrite, same repository | Accepted | 2026-05-24 |
 | [ADR-002](./adr-002-frontend-framework.md) | Next.js (App Router) as the frontend framework | Accepted | 2026-05-24 |
-| [ADR-003](./adr-003-backend-api.md) | Next.js Route Handlers + Server Actions for backend | Accepted | 2026-05-24 |
+| [ADR-003](./adr-003-backend-api.md) | Next.js Route Handlers + Server Actions for backend | Superseded in part by ADR-011 | 2026-05-24 |
 | [ADR-004](./adr-004-database.md) | Cloudflare D1 with Drizzle ORM | Accepted | 2026-05-24 |
 | [ADR-005](./adr-005-llm-provider.md) | Azure OpenAI via an internal LLM gateway | Accepted | 2026-05-24 |
 | [ADR-006](./adr-006-hosting.md) | Cloudflare Pages with `next-on-pages` | Accepted | 2026-05-24 |
@@ -18,6 +18,7 @@ supersedes the previous one.
 | [ADR-008](./adr-008-styling-components.md) | Tailwind CSS + shadcn/ui primitives | Accepted | 2026-05-24 |
 | [ADR-009](./adr-009-testing-strategy.md) | Vitest, Playwright, and prompt evals | Accepted | 2026-05-24 |
 | [ADR-010](./adr-010-ci-cd.md) | GitHub Actions for CI, Cloudflare Pages for CD | Accepted | 2026-05-24 |
+| [ADR-011](./adr-011-rest-api-style.md) | REST CRUD under `/api/v1` for all server endpoints | Accepted | 2026-05-24 |
 
 ## Template
 
