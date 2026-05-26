@@ -1,12 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Email } from "@/lib/db/repos/emails";
+
+export type MailRow = {
+  id: string;
+  sender: string;
+  subject: string;
+  preview: string;
+  receivedAt: string;
+  isRead: boolean;
+  isImportant: boolean;
+  segmentName?: string | null;
+};
 
 type Props = {
-  emails: Email[];
+  rows: MailRow[];
   selectedId: string | null;
+  title: string;
+  emptyHint?: string;
 };
 
 function formatTime(iso: string): string {
@@ -18,32 +30,34 @@ function formatTime(iso: string): string {
     : d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-export function MessageList({ emails, selectedId }: Props) {
+export function MessageList({ rows, selectedId, title, emptyHint }: Props) {
   const router = useRouter();
   const params = useSearchParams();
-  const segmentId = params.get("segmentId");
-  const listRef = useRef<HTMLDivElement>(null);
 
-  const ids = useMemo(() => emails.map((e) => e.id), [emails]);
+  const ids = useMemo(() => rows.map((r) => r.id), [rows]);
+
+  const buildHref = useCallback(
+    (id: string): string => {
+      const sp = new URLSearchParams(params.toString());
+      sp.set("id", id);
+      return `/?${sp.toString()}`;
+    },
+    [params],
+  );
 
   const navigateTo = useCallback(
     (id: string) => {
-      const url = new URL(window.location.href);
-      url.searchParams.set("id", id);
-      if (segmentId) url.searchParams.set("segmentId", segmentId);
-      router.replace(`${url.pathname}?${url.searchParams.toString()}`);
+      router.replace(buildHref(id));
     },
-    [router, segmentId],
+    [router, buildHref],
   );
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
-
       if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && e.key !== "Enter") return;
       if (ids.length === 0) return;
-
       const currentIndex = selectedId ? ids.indexOf(selectedId) : -1;
       if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -66,31 +80,29 @@ export function MessageList({ emails, selectedId }: Props) {
 
   return (
     <div
-      ref={listRef}
       role="listbox"
-      aria-label="Inbox messages"
+      aria-label={title}
       className="flex w-full max-w-md shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
     >
       <div className="border-b border-slate-200 px-3 py-2 dark:border-slate-800">
-        <h2 className="text-base font-semibold">Inbox</h2>
+        <h2 className="text-base font-semibold">{title}</h2>
         <div className="text-xs text-slate-500 dark:text-slate-400">
-          {emails.length} message{emails.length === 1 ? "" : "s"}
+          {rows.length} message{rows.length === 1 ? "" : "s"}
         </div>
       </div>
-      {emails.length === 0 ? (
+      {rows.length === 0 ? (
         <div className="p-6 text-center text-sm text-slate-500 dark:text-slate-400">
-          No messages match this filter.
+          {emptyHint ?? "No messages here."}
         </div>
       ) : (
         <ul>
-          {emails.map((e) => {
-            const isActive = e.id === selectedId;
-            const senderName = e.client?.fullName ?? e.fromEmail;
+          {rows.map((r) => {
+            const isActive = r.id === selectedId;
             return (
-              <li key={e.id} role="option" aria-selected={isActive}>
+              <li key={r.id} role="option" aria-selected={isActive}>
                 <button
                   type="button"
-                  onClick={() => navigateTo(e.id)}
+                  onClick={() => navigateTo(r.id)}
                   className={`w-full border-b border-slate-100 px-3 py-3 text-left transition dark:border-slate-800 ${
                     isActive
                       ? "bg-blue-50 dark:bg-slate-800"
@@ -98,26 +110,24 @@ export function MessageList({ emails, selectedId }: Props) {
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className={`truncate ${e.isRead ? "" : "font-semibold"}`}>
-                      {senderName}
-                    </div>
+                    <div className={`truncate ${r.isRead ? "" : "font-semibold"}`}>{r.sender}</div>
                     <div className="shrink-0 text-xs text-slate-500 dark:text-slate-400">
-                      {formatTime(e.receivedAt)}
+                      {formatTime(r.receivedAt)}
                     </div>
                   </div>
-                  <div className={`truncate text-sm ${e.isRead ? "text-slate-600 dark:text-slate-400" : "font-medium"}`}>
-                    {e.subject}
+                  <div className={`truncate text-sm ${r.isRead ? "text-slate-600 dark:text-slate-400" : "font-medium"}`}>
+                    {r.subject || "(no subject)"}
                   </div>
                   <div className="truncate text-xs text-slate-500 dark:text-slate-400">
-                    {e.preview}
+                    {r.preview}
                   </div>
                   <div className="mt-1 flex items-center gap-2 text-[11px]">
-                    {e.client?.segment ? (
+                    {r.segmentName ? (
                       <span className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                        {e.client.segment.name}
+                        {r.segmentName}
                       </span>
                     ) : null}
-                    {e.isImportant ? (
+                    {r.isImportant ? (
                       <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
                         Important
                       </span>

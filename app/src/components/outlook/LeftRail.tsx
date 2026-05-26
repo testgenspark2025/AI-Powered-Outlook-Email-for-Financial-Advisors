@@ -1,51 +1,78 @@
 import Link from "next/link";
 import type { Segment } from "@/lib/db/repos/segments";
 
+export type FolderKey = "inbox" | "drafts" | "sent" | "junk" | "archive" | "deleted";
+
 type Props = {
   inboxCount: number;
+  draftsCount: number;
+  sentCount: number;
   segments: Segment[];
+  activeFolder: FolderKey;
   activeSegmentId?: number | null;
 };
 
-const FOLDERS = [
-  { name: "Inbox", primary: true },
-  { name: "Drafts" },
-  { name: "Sent Items" },
-  { name: "Junk Email" },
-  { name: "Deleted Items" },
-  { name: "Archive" },
+const FOLDERS: { key: FolderKey; label: string }[] = [
+  { key: "inbox", label: "Inbox" },
+  { key: "drafts", label: "Drafts" },
+  { key: "sent", label: "Sent Items" },
+  { key: "junk", label: "Junk Email" },
+  { key: "deleted", label: "Deleted Items" },
+  { key: "archive", label: "Archive" },
 ];
 
-export function LeftRail({ inboxCount, segments, activeSegmentId }: Props) {
+function folderHref(folder: FolderKey, segmentId?: number | null): string {
+  const sp = new URLSearchParams();
+  if (folder !== "inbox") sp.set("folder", folder);
+  if (segmentId) sp.set("segmentId", String(segmentId));
+  const qs = sp.toString();
+  return qs ? `/?${qs}` : "/";
+}
+
+export function LeftRail({
+  inboxCount,
+  draftsCount,
+  sentCount,
+  segments,
+  activeFolder,
+  activeSegmentId,
+}: Props) {
+  function countFor(key: FolderKey): number | undefined {
+    if (key === "inbox") return inboxCount;
+    if (key === "drafts") return draftsCount || undefined;
+    if (key === "sent") return sentCount || undefined;
+    return undefined;
+  }
+
   return (
     <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 md:block">
       <div className="border-b border-slate-200 px-3 py-3 dark:border-slate-800">
         <h2 className="text-sm font-semibold">Mail</h2>
       </div>
       <div className="overflow-y-auto">
-        <Section title="Favorites">
-          {FOLDERS.slice(0, 3).map((f) => (
-            <FolderRow
-              key={f.name}
-              name={f.name}
-              count={f.name === "Inbox" ? inboxCount : undefined}
-              active={f.name === "Inbox"}
-            />
-          ))}
-        </Section>
         <Section title="outlook@financialadvisor.com">
           {FOLDERS.map((f) => (
-            <FolderRow
-              key={`m-${f.name}`}
-              name={f.name}
-              count={f.name === "Inbox" ? inboxCount : undefined}
-              active={f.name === "Inbox" && !activeSegmentId}
-            />
+            <Link
+              key={f.key}
+              href={folderHref(f.key, activeSegmentId)}
+              className={`flex items-center justify-between rounded px-2 py-1 text-sm ${
+                activeFolder === f.key
+                  ? "bg-slate-200 dark:bg-slate-800"
+                  : "hover:bg-slate-100 dark:hover:bg-slate-800"
+              }`}
+            >
+              <span>{f.label}</span>
+              {typeof countFor(f.key) === "number" ? (
+                <span className="rounded bg-brand px-1.5 text-xs font-medium text-white">
+                  {countFor(f.key)}
+                </span>
+              ) : null}
+            </Link>
           ))}
         </Section>
         <Section title="Client Segments">
           <Link
-            href="/"
+            href={folderHref(activeFolder, null)}
             className={`block rounded px-2 py-1 text-sm ${
               !activeSegmentId
                 ? "bg-slate-200 dark:bg-slate-800"
@@ -57,7 +84,7 @@ export function LeftRail({ inboxCount, segments, activeSegmentId }: Props) {
           {segments.map((s) => (
             <Link
               key={s.id}
-              href={`/?segmentId=${s.id}`}
+              href={folderHref(activeFolder, s.id)}
               className={`flex items-center gap-2 rounded px-2 py-1 text-sm ${
                 activeSegmentId === s.id
                   ? "bg-slate-200 dark:bg-slate-800"
@@ -85,29 +112,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         {title}
       </div>
       <div className="space-y-0.5">{children}</div>
-    </div>
-  );
-}
-
-function FolderRow({
-  name,
-  count,
-  active,
-}: {
-  name: string;
-  count?: number;
-  active?: boolean;
-}) {
-  return (
-    <div
-      className={`flex items-center justify-between rounded px-2 py-1 text-sm ${
-        active ? "bg-slate-200 dark:bg-slate-800" : "hover:bg-slate-100 dark:hover:bg-slate-800"
-      }`}
-    >
-      <span>{name}</span>
-      {typeof count === "number" ? (
-        <span className="rounded bg-brand px-1.5 text-xs font-medium text-white">{count}</span>
-      ) : null}
     </div>
   );
 }
