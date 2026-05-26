@@ -7,7 +7,7 @@ in Sprint 6 (ADR-001).
 | Sprint | Status | Notes |
 |---|---|---|
 | [Sprint 0](./sprint-0/) | Complete | Foundation: scaffold, auth, DB schema, gateway, CI. |
-| Sprint 1 | Not started | Inbox + reading pane. |
+| [Sprint 1](./sprint-1/) | Complete | Inbox + reading pane + seeded clients + theme toggle. |
 | Sprint 2 | Not started | Compose shell + draft autosave + Sent Items. |
 | Sprint 3 | Not started | AI Draft + depth selector. |
 | Sprint 4 | Not started | Summarization + follow-ups. |

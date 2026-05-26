@@ -13,7 +13,7 @@ edits.
 | 1 | Requirements & Discovery | Approved | [phase-1-requirements/](./phase-1-requirements/) |
 | 2 | Analysis & Planning | Approved | [phase-2-planning/](./phase-2-planning/) |
 | 3 | Design | Approved | [phase-3-design/](./phase-3-design/) |
-| 4 | Implementation | In progress (Sprint 0 done, on `develop` branch) | [phase-4-implementation/](./phase-4-implementation/) |
+| 4 | Implementation | In progress (Sprints 0-1 done, on `develop` branch) | [phase-4-implementation/](./phase-4-implementation/) |
 | 5 | Testing & QA | Not started | _pending_ |
 | 6 | Deployment & Release | Not started | _pending_ |
 | 7 | Operations & Maintenance | Not started | _pending_ |
