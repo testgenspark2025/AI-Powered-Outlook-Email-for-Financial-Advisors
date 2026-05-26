@@ -17,7 +17,11 @@ edits.
 | 5 | Testing & QA | Approved | [phase-5-testing-qa/](./phase-5-testing-qa/) |
 | 6 | Deployment & Release | Approved (theoretical — no live env yet) | [phase-6-deployment/](./phase-6-deployment/) |
 | 7 | Operations & Maintenance | Approved (theoretical — activates at first staging deploy) | [phase-7-operations/](./phase-7-operations/) |
-| 8 | Evolution & Retirement | Not started | _pending_ |
+| 8 | Evolution & Retirement | Approved | [phase-8-evolution/](./phase-8-evolution/) |
+
+> **End-to-end walkthrough complete.** See
+> [phase-8-evolution/closing-summary.md](./phase-8-evolution/closing-summary.md)
+> for the one-page summary of what was built across all 8 phases.
 
 ## How to use this directory
 
