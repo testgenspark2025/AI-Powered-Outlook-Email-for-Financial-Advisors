@@ -13,8 +13,8 @@ edits.
 | 1 | Requirements & Discovery | Approved | [phase-1-requirements/](./phase-1-requirements/) |
 | 2 | Analysis & Planning | Approved | [phase-2-planning/](./phase-2-planning/) |
 | 3 | Design | Approved | [phase-3-design/](./phase-3-design/) |
-| 4 | Implementation | Not started | _pending_ |
-| 5 | Testing & QA | Not started | _pending_ |
+| 4 | Implementation | Paused at Sprint 2 (Sprints 0-2 shipped to `develop`) | see `develop` branch under `docs/sdlc/phase-4-implementation/` |
+| 5 | Testing & QA | Approved | [phase-5-testing-qa/](./phase-5-testing-qa/) |
 | 6 | Deployment & Release | Not started | _pending_ |
 | 7 | Operations & Maintenance | Not started | _pending_ |
 | 8 | Evolution & Retirement | Not started | _pending_ |
